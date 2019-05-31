@@ -101,13 +101,10 @@ int main() {
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
     for (int j = ny-1; j >= 0; j--) {
         for (int i = 0; i < nx; i++) {
-            size_t pixel_index = j*3*nx + i*3;
-            float r = buffer[pixel_index + 0];
-            float g = buffer[pixel_index + 1];
-            float b = buffer[pixel_index + 2];
-            int ir = int(255.99*r);
-            int ig = int(255.99*g);
-            int ib = int(255.99*b);
+            size_t pixel_index = j*nx + i;
+            int ir = int(255.99*fb[pixel_index].r());
+            int ig = int(255.99*fb[pixel_index].g());
+            int ib = int(255.99*fb[pixel_index].b());
             std::cout << ir << " " << ig << " " << ib << "\n";
         }
     }
