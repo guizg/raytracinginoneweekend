@@ -19,7 +19,7 @@ __global__ void render(vec3 *fb, int max_x, int max_y, hitable **world){
 
    vec3 lower_left_corner(-2.0, -1.0, -1.0);
    vec3 horizontal(4.0, 0.0, 0.0);
-   vec3 vertial(0.0, 2.0, 0.0);
+   vec3 vertical(0.0, 2.0, 0.0);
    vec3 origin(0.0, 0.0, 0.0);
 
    int i = threadIdx.x + blockIdx.x * blockDim.x;
@@ -53,9 +53,9 @@ int main() {
     int tx = 8;
     int ty = 8;
 
-    int buffer_size = nx*ny*3*sizeof(float);
+    int buffer_size = nx*ny*sizeof(vec3);
 
-    float* buffer;
+    vec3* buffer;
 
     dim3 blocks(nx/tx+1,ny/ty+1);
     dim3 threads(tx,ty);
