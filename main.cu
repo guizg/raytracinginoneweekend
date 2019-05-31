@@ -33,18 +33,19 @@ __global__ void render(vec3 *fb, int max_x, int max_y, hitable **world){
 }
 
 
- __global__ void create_world(hitable **d_list, hitable **d_world) {
+ __global__ void create_world(hitable **list, hitable **world) {
     if (threadIdx.x == 0 && blockIdx.x == 0) {
-        *(d_list)   = new sphere(vec3(0,0,-1), 0.5);
-        *(d_list+1) = new sphere(vec3(0,-100.5,-1), 100);
-        *d_world    = new hitable_list(d_list,2);
+        *(list)   = new sphere(vec3(0,0,-1), 0.5);
+        *(list+1) = new sphere(vec3(0,-100.5,-1), 100);
+        *(list+2) = new sphere(vec3(10,10,-1), 100);
+        *world    = new hitable_list(list,2);
     }
 }
 
-__global__ void free_world(hitable **d_list, hitable **d_world) {
-    delete *(d_list);
-    delete *(d_list+1);
-    delete *d_world;
+__global__ void free_world(hitable **list, hitable **world) {
+    delete *(list);
+    delete *(list+1);
+    delete *world;
  }
 
 int main() {
@@ -62,41 +63,20 @@ int main() {
 
     cudaMallocManaged((void **)&buffer, buffer_size);
 
-
     vec3 lower_left_corner(-2.0, -1.0, -1.0);
     vec3 horizontal(4.0, 0.0, 0.0);
     vec3 vertial(0.0, 2.0, 0.0);
-    vec3 origin(0.0, 0.0, 0.0);
-
-    // hitable *list[2];
-    // list[0] = new sphere(vec3(0,0,-1), 0.5);
-    // list[1] = new sphere(vec3(0,-100.5,-1), 100);
-    // hitable *world = new hitable_list(list,2);
-
-    hitable **d_list;
-    cudaMalloc((void **)&d_list, 2*sizeof(hitable *));
-    hitable **d_world;
-    cudaMalloc((void **)&d_world, sizeof(hitable *));
-    create_world<<<1,1>>>(d_list,d_world);
+    vec3 origin(0.0, 0.0, 0.0); 
+    hitable **list;
+    cudaMalloc((void **)&list, 3*sizeof(hitable *));
+    hitable **world;
+    cudaMalloc((void **)&world, sizeof(hitable *));
+    create_world<<<1,1>>>(list,world);
     cudaDeviceSynchronize();
 
-    render<<<blocks, threads>>>(buffer, nx, ny, d_world);
+    render<<<blocks, threads>>>(buffer, nx, ny, world);
 
     cudaDeviceSynchronize();
-    
-    // std::cout << "P3\n" << nx << " " << ny << "\n255\n";
-    // for (int j = ny-1; j >= 0; j--) {
-    //     for (int i = 0; i < nx; i++) {
-    //         float u = float(i) / float(nx);
-    //         float v = float(j) / float(ny);
-    //         ray r(origin, lower_left_corner + u*horizontal + v*vertial);
-    //         vec3 col = color(r, world);
-    //         int ir = int(255.99*col[0]);
-    //         int ig = int(255.99*col[1]);
-    //         int ib = int(255.99*col[2]);
-    //         std::cout << ir << " " << ig << " " << ib << "\n";
-    //     }
-    // }
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
     for (int j = ny-1; j >= 0; j--) {
@@ -111,9 +91,9 @@ int main() {
     
     
     cudaDeviceSynchronize();
-    free_world<<<1,1>>>(d_list,d_world);
+    free_world<<<1,1>>>(list,world);
     cudaGetLastError();
-    cudaFree(d_list);
-    cudaFree(d_world);
+    cudaFree(list);
+    cudaFree(world);
     cudaFree(buffer);
 }
