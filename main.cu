@@ -80,12 +80,7 @@ int main() {
     create_world<<<1,1>>>(d_list,d_world);
     cudaDeviceSynchronize();
 
-    render<<<blocks, threads>>>(buffer, nx, ny,
-        vec3(-2.0, -1.0, -1.0),
-        vec3(4.0, 0.0, 0.0),
-        vec3(0.0, 2.0, 0.0),
-        vec3(0.0, 0.0, 0.0),
-        d_world);
+    render<<<blocks, threads>>>(buffer, nx, ny, d_world);
 
     cudaDeviceSynchronize();
     
