@@ -1,3 +1,6 @@
+#ifndef HITABLELISTH
+#define HITABLELISTH
+
 #include "hitable.h"
 
 class hitable_list: public hitable  {
@@ -22,3 +25,5 @@ __device__ bool hitable_list::hit(const ray& r, float t_min, float t_max, hit_re
         }
         return hit_anything;
 }
+
+#endif
