@@ -37,7 +37,7 @@ __global__ void render(vec3 *fb, int max_x, int max_y, hitable **world){
     if (threadIdx.x == 0 && blockIdx.x == 0) {
         *(list)   = new sphere(vec3(0,0,-1), 0.5);
         *(list+1) = new sphere(vec3(0,-100.5,-1), 100);
-        *(list+2) = new sphere(vec3(10,10,-1), 100);
+        *(list+2) = new sphere(vec3(2,0,-2), 100);
         *world    = new hitable_list(list,2);
     }
 }
@@ -45,6 +45,7 @@ __global__ void render(vec3 *fb, int max_x, int max_y, hitable **world){
 __global__ void free_world(hitable **list, hitable **world) {
     delete *(list);
     delete *(list+1);
+    delete *(list+2);
     delete *world;
  }
 
