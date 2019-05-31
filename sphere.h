@@ -1,6 +1,3 @@
-#ifndef SPHEREH
-#define SPHEREH
-
 #include "hitable.h"
 
 class sphere: public hitable  {
@@ -8,11 +5,11 @@ class sphere: public hitable  {
         __device__ sphere() {}
         __device__ sphere(vec3 cen, float r) : center(cen), radius(r)  {};
         __device__ virtual bool hit(const ray& r, float tmin, float tmax, hit_record& rec) const;
-        __device__ vec3 center;
-        __device__ float radius;
+        vec3 center;
+        float radius;
 };
 
-bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
+__device__ bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const {
     vec3 oc = r.origin() - center;
     float a = dot(r.direction(), r.direction());
     float b = dot(oc, r.direction());
@@ -36,6 +33,3 @@ bool sphere::hit(const ray& r, float t_min, float t_max, hit_record& rec) const 
     }
     return false;
 }
-
-
-#endif
