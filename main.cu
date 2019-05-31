@@ -4,6 +4,17 @@
 #include "float.h"
 #include <cuda_runtime.h>
 
+__device__ vec3 color(const ray& r, hitable **world) {
+   hit_record rec;
+   if ((*world)->hit(r, 0.0, FLT_MAX, rec)) {
+      return 0.5f*vec3(rec.normal.x()+1.0f, rec.normal.y()+1.0f, rec.normal.z()+1.0f);
+   }
+   else {
+      vec3 unit_direction = unit_vector(r.direction());
+      float t = 0.5f*(unit_direction.y() + 1.0f);
+      return (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
+   }
+}
 __global__ void render(vec3 *fb, int max_x, int max_y,vec3 lower_left_corner, vec3 horizontal, vec3 vertical, vec3 origin, hitable **world)
 {
    int i = threadIdx.x + blockIdx.x * blockDim.x;
@@ -16,17 +27,6 @@ __global__ void render(vec3 *fb, int max_x, int max_y,vec3 lower_left_corner, ve
    fb[pixel_index] = color(r, world);
 }
 
-__device__ vec3 color(const ray& r, hitable **world) {
-   hit_record rec;
-   if ((*world)->hit(r, 0.0, FLT_MAX, rec)) {
-      return 0.5f*vec3(rec.normal.x()+1.0f, rec.normal.y()+1.0f, rec.normal.z()+1.0f);
-   }
-   else {
-      vec3 unit_direction = unit_vector(r.direction());
-      float t = 0.5f*(unit_direction.y() + 1.0f);
-      return (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
-   }
-}
 
  __global__ void create_world(hitable **d_list, hitable **d_world) {
     if (threadIdx.x == 0 && blockIdx.x == 0) {
@@ -45,10 +45,15 @@ __global__ void free_world(hitable **d_list, hitable **d_world) {
 int main() {
     int nx = 200;
     int ny = 100;
+    int tx = 8;
+    int ty = 8;
 
-    int buffer_size = nx*ny*3*sizeof(float)
+    int buffer_size = nx*ny*3*sizeof(float);
 
     float* buffer;
+
+    dim3 blocks(nx/tx+1,ny/ty+1);
+    dim3 threads(tx,ty);
 
     cudaMallocManaged((void **)&buffer, buffer_size);
 
@@ -70,7 +75,7 @@ int main() {
     create_world<<<1,1>>>(d_list,d_world);
     cudaDeviceSynchronize();
 
-    render<<<blocks, threads>>>(fb, nx, ny,
+    render<<<blocks, threads>>>(buffer, nx, ny,
         vec3(-2.0, -1.0, -1.0),
         vec3(4.0, 0.0, 0.0),
         vec3(0.0, 2.0, 0.0),
