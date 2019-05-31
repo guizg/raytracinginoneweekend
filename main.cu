@@ -15,8 +15,13 @@ __device__ vec3 color(const ray& r, hitable **world) {
       return (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
    }
 }
-__global__ void render(vec3 *fb, int max_x, int max_y,vec3 lower_left_corner, vec3 horizontal, vec3 vertical, vec3 origin, hitable **world)
-{
+__global__ void render(vec3 *fb, int max_x, int max_y, hitable **world){
+
+   vec3 lower_left_corner(-2.0, -1.0, -1.0);
+   vec3 horizontal(4.0, 0.0, 0.0);
+   vec3 vertial(0.0, 2.0, 0.0);
+   vec3 origin(0.0, 0.0, 0.0);
+
    int i = threadIdx.x + blockIdx.x * blockDim.x;
    int j = threadIdx.y + blockIdx.y * blockDim.y;
    if((i >= max_x) || (j >= max_y)) return;
