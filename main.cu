@@ -38,6 +38,7 @@ __global__ void render(vec3 *fb, int max_x, int max_y, hitable **world){
         *(list) = new sphere(vec3(0,0,-1), 0.5);
         *(list+1) = new sphere(vec3(0,-100.5,-1), 100);
         *(list+2) = new sphere(vec3(1, 0,-1), 0.5);
+        *(list+3) = new sphere(vec3(-1, 0,-1), 0.5);
         *world    = new hitable_list(list,2);
     }
 }
@@ -64,12 +65,8 @@ int main() {
 
     cudaMallocManaged((void **)&buffer, buffer_size);
 
-    vec3 lower_left_corner(-2.0, -1.0, -1.0);
-    vec3 horizontal(4.0, 0.0, 0.0);
-    vec3 vertial(0.0, 2.0, 0.0);
-    vec3 origin(0.0, 0.0, 0.0); 
     hitable **list;
-    cudaMalloc((void **)&list, 3*sizeof(hitable *));
+    cudaMalloc((void **)&list, 4*sizeof(hitable *));
     hitable **world;
     cudaMalloc((void **)&world, sizeof(hitable *));
     create_world<<<1,1>>>(list,world);
