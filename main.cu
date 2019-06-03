@@ -38,7 +38,7 @@ __global__ void render(vec3 *fb, int max_x, int max_y, hitable **world){
     if (threadIdx.x == 0 && blockIdx.x == 0) {
         *(list) = new sphere(vec3(0,0,-1), 0.5);
         *(list+1) = new sphere(vec3(0,-100.5,-1), 100);
-        *(list+2) = new sphere(vec3(1, 0,-1), 0.5);
+        *(list+2) = new sphere(vec3(1, 0.2,-1), 0.5);
         *(list+3) = new sphere(vec3(1, 0.2, 1), 0.5);
         *world    = new hitable_list(list,3);
     }
@@ -56,15 +56,14 @@ int main() {
     using namespace std::chrono;
     int nx = 200;
     int ny = 100;
-    int tx = 8;
-    int ty = 8;
+    int nthreads = 8;
 
     int buffer_size = nx*ny*sizeof(vec3);
 
     vec3* buffer;
 
-    dim3 blocks(nx/tx+1,ny/ty+1);
-    dim3 threads(tx,ty);
+    dim3 blocks(nx/nthreads+1,ny/nthreads+1);
+    dim3 threads(nthreads,nthreads);
 
     cudaMallocManaged((void **)&buffer, buffer_size);
 
