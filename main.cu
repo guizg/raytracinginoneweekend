@@ -3,6 +3,7 @@
 #include "hitable_list.h"
 #include "float.h"
 #include <cuda_runtime.h>
+#include <chrono>
 
 __device__ vec3 color(const ray& r, hitable **world) {
    hit_record rec;
@@ -51,6 +52,7 @@ __global__ void free_world(hitable **list, hitable **world) {
  }
 
 int main() {
+    using namespace std::chrono;
     int nx = 200;
     int ny = 100;
     int tx = 8;
@@ -72,9 +74,13 @@ int main() {
     create_world<<<1,1>>>(list,world);
     cudaDeviceSynchronize();
 
+    high_resolution_clock::time_point t1 = high_resolution_clock::now();
+
     render<<<blocks, threads>>>(buffer, nx, ny, world);
 
     cudaDeviceSynchronize();
+
+    high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
     for (int j = ny-1; j >= 0; j--) {
@@ -86,6 +92,11 @@ int main() {
             std::cout << ir << " " << ig << " " << ib << "\n";
         }
     }
+
+    duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
+
+    std::cerr << "Tempo: " << time_span.count() << " segundos.";
+    std::cerr << std::endl;
     
     
     cudaDeviceSynchronize();
@@ -94,4 +105,6 @@ int main() {
     cudaFree(list);
     cudaFree(world);
     cudaFree(buffer);
+
+    return 0;
 }
