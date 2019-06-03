@@ -56,7 +56,7 @@ int main() {
     using namespace std::chrono;
     int nx = 200;
     int ny = 100;
-    int nthreads = 8;
+    int nthreads = 16;
 
     int buffer_size = nx*ny*sizeof(vec3);
 
