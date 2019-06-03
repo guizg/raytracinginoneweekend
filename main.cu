@@ -47,7 +47,6 @@ __global__ void free_world(hitable **list, hitable **world) {
     delete *(list);
     delete *(list+1);
     delete *(list+2);
-    delete *(list+3);
     delete *world;
  }
 
