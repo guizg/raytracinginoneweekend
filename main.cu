@@ -39,7 +39,7 @@ __global__ void render(vec3 *fb, int max_x, int max_y, hitable **world){
         *(list) = new sphere(vec3(0,0,-1), 0.5);
         *(list+1) = new sphere(vec3(0,-100.5,-1), 100);
         *(list+2) = new sphere(vec3(1, 0,-1), 0.5);
-        *(list+2) = new sphere(vec3(1, 1,-0.5), 0.5);
+        *(list+3) = new sphere(vec3(1, 1,-0.5), 0.5);
         *world    = new hitable_list(list,3);
     }
 }
@@ -48,6 +48,7 @@ __global__ void free_world(hitable **list, hitable **world) {
     delete *(list);
     delete *(list+1);
     delete *(list+2);
+    delete *(list+3);
     delete *world;
  }
 
