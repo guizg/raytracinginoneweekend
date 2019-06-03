@@ -37,9 +37,8 @@ __global__ void render(vec3 *fb, int max_x, int max_y, hitable **world){
  __global__ void create_world(hitable **list, hitable **world) {
     if (threadIdx.x == 0 && blockIdx.x == 0) {
         *(list) = new sphere(vec3(0,0,-1), 0.5);
-        // *(list+1) = new sphere(vec3(0,-100.5,-1), 100);
-        *(list+1) = new sphere(vec3(1, 0,-1), 0.5);
-        *(list+2) = new sphere(vec3(-1, 0,-1), 0.5);
+        *(list+1) = new sphere(vec3(0,-100.5,-1), 100);
+        *(list+2) = new sphere(vec3(1, 0,-1), 2);
         *world    = new hitable_list(list,3);
     }
 }
