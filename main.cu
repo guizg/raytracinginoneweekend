@@ -102,10 +102,10 @@ int main() {
 
     cudaDeviceSynchronize();
 
-    high_resolution_clock::time_point t2 = high_resolution_clock::now();
-
+    
     // copia o vetor de pixels da GPU para a CPU
     cudaMemcpy(h_buffer, d_buffer, buffer_size, cudaMemcpyDeviceToHost);
+    high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
     cudaDeviceSynchronize();
 
