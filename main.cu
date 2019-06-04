@@ -56,16 +56,22 @@ int main() {
     using namespace std::chrono;
     int nx = 200;
     int ny = 100;
-    int nthreads = 16;
+    int nthreads = 8;
 
     int buffer_size = nx*ny*sizeof(vec3);
 
-    vec3* buffer;
+    vec3* h_buffer;
+    vec3* d_buffer;
 
     dim3 blocks(nx/nthreads+1,ny/nthreads+1);
     dim3 threads(nthreads,nthreads);
 
-    cudaMallocManaged((void **)&buffer, buffer_size);
+    h_buffer = (vec3 *)malloc(buffer_size);
+
+    cudaMalloc((void**)&d_buffer, buffer_size);
+    cudaMemcpy(d_buffer, h_buffer, buffer_size, cudaMemcpyHostToDevice);
+
+    // cudaMallocManaged((void **)&buffer, buffer_size);
 
     hitable **list;
     cudaMalloc((void **)&list, 4*sizeof(hitable *));
@@ -76,19 +82,24 @@ int main() {
 
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
 
-    render<<<blocks, threads>>>(buffer, nx, ny, world);
+    render<<<blocks, threads>>>(d_buffer, nx, ny, world);
 
     cudaDeviceSynchronize();
 
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
+    cudaMemcpy(h_buffer, d_buffer, buffer_size, cudaMemcpyDeviceToHost);
+
+    cudaDeviceSynchronize();
+
+
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
     for (int j = ny-1; j >= 0; j--) {
         for (int i = 0; i < nx; i++) {
             size_t pixel_index = j*nx + i;
-            int ir = int(255.99*buffer[pixel_index].r());
-            int ig = int(255.99*buffer[pixel_index].g());
-            int ib = int(255.99*buffer[pixel_index].b());
+            int ir = int(255.99*h_buffer[pixel_index].r());
+            int ig = int(255.99*h_buffer[pixel_index].g());
+            int ib = int(255.99*h_buffer[pixel_index].b());
             std::cout << ir << " " << ig << " " << ib << "\n";
         }
     }
@@ -105,6 +116,7 @@ int main() {
     cudaFree(list);
     cudaFree(world);
     cudaFree(buffer);
+    cudaFree(d_buffer);
 
     return 0;
 }
