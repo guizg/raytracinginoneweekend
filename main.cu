@@ -61,8 +61,8 @@ int main() {
     using namespace std::chrono;
 
     // dimensões da imagem
-    int nx = 1600;
-    int ny = 800;
+    int nx = 3200;
+    int ny = 1600;
 
     //numero de linhas e colunas de threads nos blocos (estou usando sempre matrizes quadradas)
     int nthreads = 8;
