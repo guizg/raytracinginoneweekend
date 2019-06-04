@@ -105,10 +105,9 @@ int main() {
     
     // copia o vetor de pixels da GPU para a CPU
     cudaMemcpy(h_buffer, d_buffer, buffer_size, cudaMemcpyDeviceToHost);
-    high_resolution_clock::time_point t2 = high_resolution_clock::now();
-
+    
     cudaDeviceSynchronize();
-
+    
     // Escreve o arquivo de saída que descreve a imagem
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
     for (int j = ny-1; j >= 0; j--) {
@@ -120,7 +119,8 @@ int main() {
             std::cout << ir << " " << ig << " " << ib << "\n";
         }
     }
-
+    high_resolution_clock::time_point t2 = high_resolution_clock::now();
+    
     duration<double> time_span = duration_cast<duration<double>>(t2 - t1);
 
     std::cerr << "Tempo: " << time_span.count() << " segundos.";
