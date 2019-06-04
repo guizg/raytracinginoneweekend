@@ -25,10 +25,11 @@ __global__ void render(vec3 *fb, int max_x, int max_y, hitable **world){
    vec3 horizontal(4.0, 0.0, 0.0);
    vec3 vertical(0.0, 2.0, 0.0);
    vec3 origin(0.0, 0.0, 0.0);
-
+   
+   // são usadas variáveis do CUDA para descobrir qual pixel devemos calcular
    int i = threadIdx.x + blockIdx.x * blockDim.x;
    int j = threadIdx.y + blockIdx.y * blockDim.y;
-   if((i >= max_x) || (j >= max_y)) return;
+   if((i >= max_x) || (j >= max_y)) return; // como as dimensões da matriz de threads podem ser um pouco maiores que as da imagem, esse if nos previne de escrever onde nao devemos
    int pixel_index = j*max_x + i;
    float u = float(i) / float(max_x);
    float v = float(j) / float(max_y);
@@ -63,7 +64,7 @@ int main() {
     int nx = 200;
     int ny = 100;
 
-    //numero de linhas e colunas de threads nos blocos (estou usando sempre matrize quadradas)
+    //numero de linhas e colunas de threads nos blocos (estou usando sempre matrizes quadradas)
     int nthreads = 8;
 
     // descobre o tamanho necessário para o vetor que armazenará os pixels
@@ -81,31 +82,34 @@ int main() {
     // aloca o vetor de pixels na CPU
     h_buffer = (vec3 *)malloc(buffer_size);
 
-    
+    // aloca o vetor de pixels na GPU
     cudaMalloc((void**)&d_buffer, buffer_size);
-    // cudaMemcpy(d_buffer, h_buffer, buffer_size, cudaMemcpyHostToDevice);
 
-
+    // cria e aloca a lista de hitables e o mundo na GPU
     hitable **list;
     cudaMalloc((void **)&list, 4*sizeof(hitable *));
     hitable **world;
     cudaMalloc((void **)&world, sizeof(hitable *));
+
+    // lança o kernel para a instanciacao do mundo e esferas (1 bloco e 1 thread)
     create_world<<<1,1>>>(list,world);
     cudaDeviceSynchronize();
 
     high_resolution_clock::time_point t1 = high_resolution_clock::now();
 
+    // lança o kernel principal, para fazer os cálculos de ray tracing e preencher o vetor de pixels na GPU
     render<<<blocks, threads>>>(d_buffer, nx, ny, world);
 
     cudaDeviceSynchronize();
 
     high_resolution_clock::time_point t2 = high_resolution_clock::now();
 
+    // copia o vetor de pixels da GPU para a CPU
     cudaMemcpy(h_buffer, d_buffer, buffer_size, cudaMemcpyDeviceToHost);
 
     cudaDeviceSynchronize();
 
-
+    // Escreve o arquivo de saída que descreve a imagem
     std::cout << "P3\n" << nx << " " << ny << "\n255\n";
     for (int j = ny-1; j >= 0; j--) {
         for (int i = 0; i < nx; i++) {
@@ -122,9 +126,9 @@ int main() {
     std::cerr << "Tempo: " << time_span.count() << " segundos.";
     std::cerr << std::endl;
     
-    
+    // Libera a memória
     cudaDeviceSynchronize();
-    free_world<<<1,1>>>(list,world);
+    free_world<<<1,1>>>(list,world); // aqui usando um kernel de um bloco e uma thread
     cudaGetLastError();
     cudaFree(list);
     cudaFree(world);
