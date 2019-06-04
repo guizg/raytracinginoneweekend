@@ -65,7 +65,7 @@ int main() {
     int ny = 6400;
 
     //numero de linhas e colunas de threads nos blocos (estou usando sempre matrizes quadradas)
-    int nthreads = 8;
+    int nthreads = 32;
 
     // descobre o tamanho necessário para o vetor que armazenará os pixels
     int buffer_size = nx*ny*sizeof(vec3);
