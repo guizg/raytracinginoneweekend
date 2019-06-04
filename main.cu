@@ -115,7 +115,6 @@ int main() {
     cudaGetLastError();
     cudaFree(list);
     cudaFree(world);
-    cudaFree(buffer);
     cudaFree(d_buffer);
 
     return 0;
