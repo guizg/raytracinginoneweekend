@@ -61,11 +61,11 @@ int main() {
     using namespace std::chrono;
 
     // dimensões da imagem
-    int nx = 12800;
-    int ny = 6400;
+    int nx = 200;
+    int ny = 100;
 
     //numero de linhas e colunas de threads nos blocos (estou usando sempre matrizes quadradas)
-    int nthreads = 2;
+    int nthreads = 8;
 
     // descobre o tamanho necessário para o vetor que armazenará os pixels
     int buffer_size = nx*ny*sizeof(vec3);
@@ -90,12 +90,12 @@ int main() {
     cudaMalloc((void **)&list, 4*sizeof(hitable *));
     hitable **world;
     cudaMalloc((void **)&world, sizeof(hitable *));
-
+    
+    high_resolution_clock::time_point t1 = high_resolution_clock::now();
     // lança o kernel para a instanciacao do mundo e esferas (1 bloco e 1 thread)
     create_world<<<1,1>>>(list,world);
     cudaDeviceSynchronize();
 
-    high_resolution_clock::time_point t1 = high_resolution_clock::now();
 
     // lança o kernel principal, para fazer os cálculos de ray tracing e preencher o vetor de pixels na GPU
     render<<<blocks, threads>>>(d_buffer, nx, ny, world);
