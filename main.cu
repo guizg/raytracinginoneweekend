@@ -5,6 +5,7 @@
 #include <cuda_runtime.h>
 #include <chrono>
 
+// faz o caminho do raio de luz simulado para descobrir a cor dos pixels
 __device__ vec3 color(const ray& r, hitable **world) {
    hit_record rec;
    if ((*world)->hit(r, 0.0, FLT_MAX, rec)) {
@@ -16,6 +17,8 @@ __device__ vec3 color(const ray& r, hitable **world) {
       return (1.0f-t)*vec3(1.0, 1.0, 1.0) + t*vec3(0.5, 0.7, 1.0);
    }
 }
+
+// Função principal, executada em todas a threads, que usa a função color para descobrir e preencher a cor de cada pixel
 __global__ void render(vec3 *fb, int max_x, int max_y, hitable **world){
 
    vec3 lower_left_corner(-2.0, -1.0, -1.0);
@@ -33,7 +36,7 @@ __global__ void render(vec3 *fb, int max_x, int max_y, hitable **world){
    fb[pixel_index] = color(r, world);
 }
 
-
+// Inicializador. Executada em um kernel exclusivo na GPU, ela instancia as esferas e o mundo
  __global__ void create_world(hitable **list, hitable **world) {
     if (threadIdx.x == 0 && blockIdx.x == 0) {
         *(list) = new sphere(vec3(0,0,-1), 0.5);
@@ -44,6 +47,7 @@ __global__ void render(vec3 *fb, int max_x, int max_y, hitable **world){
     }
 }
 
+// Tambem executada em um kernel exclusivo, ela libera a memória instanciada na função acima
 __global__ void free_world(hitable **list, hitable **world) {
     delete *(list);
     delete *(list+1);
@@ -54,24 +58,33 @@ __global__ void free_world(hitable **list, hitable **world) {
 
 int main() {
     using namespace std::chrono;
+
+    // dimensões da imagem
     int nx = 200;
     int ny = 100;
+
+    //numero de linhas e colunas de threads nos blocos (estou usando sempre matrize quadradas)
     int nthreads = 8;
 
+    // descobre o tamanho necessário para o vetor que armazenará os pixels
     int buffer_size = nx*ny*sizeof(vec3);
 
+    // vetores de pixels do host e do device
     vec3* h_buffer;
     vec3* d_buffer;
 
+
+    // criação de blocos e threads para o kernel principal
     dim3 blocks(nx/nthreads+1,ny/nthreads+1);
     dim3 threads(nthreads,nthreads);
 
+    // aloca o vetor de pixels na CPU
     h_buffer = (vec3 *)malloc(buffer_size);
 
+    
     cudaMalloc((void**)&d_buffer, buffer_size);
-    cudaMemcpy(d_buffer, h_buffer, buffer_size, cudaMemcpyHostToDevice);
+    // cudaMemcpy(d_buffer, h_buffer, buffer_size, cudaMemcpyHostToDevice);
 
-    // cudaMallocManaged((void **)&buffer, buffer_size);
 
     hitable **list;
     cudaMalloc((void **)&list, 4*sizeof(hitable *));
